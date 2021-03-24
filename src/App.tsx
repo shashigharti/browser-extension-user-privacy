@@ -3,7 +3,15 @@ import React, { useState } from "react";
 import './App.css';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
-import Loader from './utils/loader.js';
+import Loader from './utils/loader';
+import {
+    CookieInstrument,
+    HttpInstrument,
+    JavascriptInstrument,
+    NavigationInstrument
+} from "@openwpm/webext-instrumentation";
+import * as dataReceiver from "./utils/dataReceiver";
+
 
 var toxicity = require('@tensorflow-models/toxicity');
 
@@ -30,7 +38,11 @@ export const App = () => {
         });
     }
     const sendTestMessage = () => {
-        getToxicity();
+        // getToxicity();
+        const config = getOpenwpmConfig();
+        console.log("config" + config)
+        dataReceiver.activeTabDwellTimeMonitor.run();
+
     };
     
     return (
