@@ -1,5 +1,6 @@
 /**
  * Monitors active dwell time of all opened/activated tabs
+ * Reference: https://github.com/mozilla/jestr-pioneer-shield-study
  */
  export class ActiveTabDwellTimeMonitor {
     private tabActiveDwellTimes = {};

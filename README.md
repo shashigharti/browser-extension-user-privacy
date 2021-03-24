@@ -1,6 +1,6 @@
 ## Reference
 https://github.com/nemrosim/chrome-react-extension-example
-
+https://github.com/mozilla/jestr-pioneer-shield-study
 
 ## 1. How to build this extension:
 
