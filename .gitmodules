@@ -1,0 +1,3 @@
+[submodule "src/tools/webext-instrumentation"]
+	path = src/tools/webext-instrumentation
+	url = git@github.com:shashigharti/openwpm-web-ext-instrumentation.git
