@@ -1,3 +1,4 @@
+// Code Source: https://github.com/OpenMined/syft.js/blob/dev/examples/multi-armed-bandit/index.js
 // Import core dependencies
 import * as tf from '@tensorflow/tfjs-core';
 import { Syft } from '@openmined/syft.js';

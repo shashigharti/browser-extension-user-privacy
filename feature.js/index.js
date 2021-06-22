@@ -1,3 +1,4 @@
+// Code Reference: https://github.com/mozilla/OpenWPM/tree/master/openwpm/Extension/firefox
 import {
   CookieInstrument,
   DnsInstrument,

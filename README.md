@@ -17,5 +17,9 @@ Select `/build` folder
 ## 4. How to run the react app
 $ npm run start
 
+## References
+https://github.com/mozilla/OpenWPM/tree/master/openwpm/Extension/firefox
+https://github.com/OpenMined/syft.js/blob/dev/examples/multi-armed-bandit
+
 
 
