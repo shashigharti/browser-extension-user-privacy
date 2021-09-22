@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import { Button } from '@material-ui/core';
 import './App.css';
-// import { notifyClick } from './tools/globals';
 
 export const App = () => {
     const [data, setData] = useState('Test');
 
+    React.useEffect(() => {    
+        browser.runtime.onMessage.addListener((response: any) => {
+            setData(response);
+            console.log(response, data);
+        });
+    }, []);
+
     const startDataCollection = () => {
-        //notifyClick("test");
+        browser.runtime.sendMessage({"message":"start"});
     };
 
     return (
@@ -24,7 +30,9 @@ export const App = () => {
                             </Button>
                         </td>
                         <td>
-                            {data}
+                        {/* {data.map(d => (
+                            <p>{d}</p>
+                        ))} */}
                         </td>
                     </tr>
                 </tbody>

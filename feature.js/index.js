@@ -10,13 +10,13 @@ import * as loggingDB from "./loggingdb";
 let dataObject = null;
 let started = false;
 
-// function test(response){
-//     if (!started){
-//         main();
-//     }
-//     console.log("Received from react", response.message);
-// }
-// browser.runtime.onMessage.addListener(test);
+function test(response){
+    console.log("Received from react", response.message);
+    if(response.message){
+        main();
+    }    
+}
+browser.runtime.onMessage.addListener(test);
 
 async function main() {  
   let config = {
@@ -84,5 +84,3 @@ async function main() {
 
   // await browser.profileDirIO.writeFile("OPENWPM_STARTUP_SUCCESS.txt", "");
 }
-
-main();

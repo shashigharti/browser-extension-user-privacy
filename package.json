@@ -54,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@types/firefox-webext-browser": "^82.0.1",
     "@types/chrome": "^0.0.126",
     "@types/react-router-dom": "^5.1.6",
     "@types/uuid": "^8.3.0",

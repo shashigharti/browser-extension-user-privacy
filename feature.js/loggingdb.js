@@ -18,6 +18,13 @@ function Data() {
         }
     };
 }
+
+function sendMessageToBrowser(message) {
+    browser.runtime.sendMessage({
+        data: 'hello'
+    });
+}
+
 let dataObject = null;
 export let open = function() {
     dataObject = new Data();
@@ -59,7 +66,8 @@ export let logCritical = function(msg) {
 
 export let saveRecord = function(instrument, record) {
     record["visit_id"] = visitID;
-    dataObject.update("EXTENSION:" + instrument, record);
-    console.log(dataObject);
+    dataObject.update("EXTENSION:" + instrument, record);    
+    sendMessageToBrowser(record);    
+    // console.log(dataObject);
     return;
 };
