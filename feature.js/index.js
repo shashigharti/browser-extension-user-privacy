@@ -10,13 +10,13 @@ import * as loggingDB from "./loggingdb";
 let dataObject = null;
 let started = false;
 
-function test(response){
+function StartTracking(response){
     console.log("Received from react", response.message);
     if(response.message){
         main();
     }    
 }
-browser.runtime.onMessage.addListener(test);
+browser.runtime.onMessage.addListener(StartTracking);
 
 async function main() {  
   let config = {
@@ -44,10 +44,6 @@ async function main() {
       testing: true,
       browser_id: 0
   };
-
-  console.log("config", {
-          config
-  });
 
   dataObject = loggingDB.open();
   if (config["navigation_instrument"]) {
