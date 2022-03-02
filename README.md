@@ -1,6 +1,5 @@
 ## Reference
-- https://github.com/nemrosim/chrome-react-extension-example
-- https://github.com/mozilla/jestr-pioneer-shield-study
+
 
 ## Pull submodule web-extension(mozilla)
 ```
@@ -24,8 +23,10 @@ Select `/build` folder
 $ npm run start
 
 ## References
-https://github.com/mozilla/OpenWPM/tree/master/openwpm/Extension/firefox
-https://github.com/OpenMined/syft.js/blob/dev/examples/multi-armed-bandit
+- https://github.com/mozilla/OpenWPM/tree/master/openwpm/Extension/firefox
+- https://github.com/OpenMined/syft.js/blob/dev/examples/multi-armed-bandit
+- https://github.com/nemrosim/chrome-react-extension-example
+- https://github.com/mozilla/jestr-pioneer-shield-study
 
 
 
