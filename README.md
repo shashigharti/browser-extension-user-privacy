@@ -1,10 +1,10 @@
 ## Reference
-https://github.com/nemrosim/chrome-react-extension-example
-https://github.com/mozilla/jestr-pioneer-shield-study
+- https://github.com/nemrosim/chrome-react-extension-example
+- https://github.com/mozilla/jestr-pioneer-shield-study
 
 ## Pull submodule web-extension(mozilla)
-git submodule init
-git submodule update
+> git submodule init 
+> git submodule update
 
 ## 1. How to build this extension:
 
