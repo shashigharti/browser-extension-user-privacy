@@ -23,6 +23,6 @@
   },
   "include": [
     "src"
-  ],
+, "common.js"  ],
   "exclude": ["src/tools"]
 }

@@ -14,7 +14,7 @@
   },
   "background": {
     "scripts": [
-      "static/js/feature.js"
+      "static/js/feature.js"      
     ]
   },
   "content_scripts": [
@@ -23,8 +23,7 @@
         "<all_urls>"
       ],
       "js": [
-        "static/js/global.js",
-        "static/js/main.js"
+        "static/js/main.js", "static/js/frontend.js"
       ]
     }
   ],
