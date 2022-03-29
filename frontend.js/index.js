@@ -1,10 +1,15 @@
-import { argMax, simulate, actionAndUpdate } from "./common";
-import { ADS, META_DATA, ALL_UIOPTIONS } from "./data/";
+import {
+  argMax,
+  simulate,
+  actionAndUpdate,
+  generatePolicies,
+  clientPreferences,
+} from "./common";
+import { META_DATA } from "./data/";
 
 const { jStat } = require("jstat");
-
-const id = 7;
-const API_ENDPOINT = "127.0.0.1:8000";
+const id = 2;
+const API_ENDPOINT = "127.0.0.1:8082";
 const url = "ws://" + API_ENDPOINT + "/fl-server/" + META_DATA[id].model_name;
 
 // Features/parameters that determine the users action
@@ -16,24 +21,61 @@ let alphasArray = [],
   selectedOption = 0,
   cycle = 0,
   socket = null,
-  simulation = true;
-
-// User options : 3 types of options
-const dim = 3,
+  simulation = false,
+  user_privacy_preference_level = 0,
+  random = true,
   noOfClients = META_DATA[id].no_of_clients,
-  stopAfter = 400,
-  policies = [
-    [0.8, 0.1, 0.1],
-    [0.1, 0.8, 0.1],
-    [0.2, 0.2, 0.6],
-  ],
-  // options = 0,
-  imgSrc = "",
-  elem = document.getElementsByTagName("BODY")[0],
-  allSelectedOptions = {};
+  probIdx = 0; // It increases by 1 unit if the policy change is set to true
+
+let client_preferences = clientPreferences(
+  noOfClients,
+  probIdx,
+  META_DATA[id].change_prob_idxs,
+  META_DATA[id].change_probs
+);
+
+// User options : 24 types of options
+const dim = META_DATA[id].dim,
+  stopAfter = 100,
+  policies = generatePolicies(noOfClients, dim, client_preferences),
+  elem = document.getElementsByTagName("BODY")[0];
+
+let userActionPromiseResolve = null,
+  userActionPromise = null; // stores the reference to resolve function for user action
+
+// When the user clicks the button...
+const submitPositiveResult = (e) => {
+  console.log("[Content Script - Socket]User clicked");
+  userActionPromiseResolve(true);
+};
+
+// When the user doesn't click the button...
+const submitNegativeResult = (e) => {
+  console.log("[Socket]User didnot Click");
+  userActionPromiseResolve(false);
+};
+
+window.addEventListener("beforeunload", submitNegativeResult);
+document.addEventListener("keyup", (e) => {
+  if (e.code === "KeyX") submitNegativeResult();
+});
+
+const injectNoise = (user_privacy_preference_level) => {
+  let random_number = Math.random();
+  console.log(
+    "[Content Script - Socket]Math.random:user_privacy_preference_level",
+    random_number,
+    ":",
+    user_privacy_preference_level / 100
+  );
+  return random_number < user_privacy_preference_level / 100 ? 1 : 0;
+};
+
+console.log("[Content Script - Socket]Click event listener");
+const btn = document.querySelector("BUTTON");
+btn.addEventListener("click", submitPositiveResult);
 
 // Initialize
-// options = Object.keys(books).length;
 socket = new WebSocket(url);
 clientId = Math.floor(Math.random() * noOfClients);
 policy = policies[clientId];
@@ -52,7 +94,7 @@ const selectSample = () => {
       betasArray[opt]
     );
   }
-  console.log("[Content Script - Socket]Beta Distribution", betaDistribution);
+  console.log("[Content Script - Socket]Beta distribution", betaDistribution);
   console.log("[Content Script - Socket]Policy", policy);
 
   if (betaDistribution.length > 0) {
@@ -70,43 +112,66 @@ const selectSample = () => {
 /**
  * Simulate the user action and update the reward
  */
-const rewardAndUpdateWeights = () => {
+const rewardAndUpdateWeights = async () => {
   // If simulation is true, simulate the user action
-  if (simulation && cycle <= stopAfter) {
-    console.log("[Content Script - Socket]Simulate");
+  if (cycle <= stopAfter) {
+    let gradWeights, new_reward, alphas, betas;
+    if (simulation) {
+      console.log("[Content Script - Socket]Simulate");
+      new_reward = simulate(policy, selectedOption);
+    } else {
+      console.log("[Content Script - Socket]Wait for user action");
 
-    let new_reward = simulate(policy, selectedOption);
+      // When the user clicks the button...
+      // Wait on user input...
+      const clicked = await userActionPromise;
+      console.log("[Content Script - Socket]Clicked", clicked);
+
+      // If they clicked, set the reward value for this option to be a 1, otherwise it's a 0
+      new_reward = clicked ? 1 : 0;
+      console.log("[Content Script - Socket]New Reward", new_reward);
+    }
+
+    // Calculate new gradients
     let params = actionAndUpdate(
       alphasArray,
       betasArray,
       selectedOption,
       new_reward
     );
+    gradWeights = params[0];
+    alphas = gradWeights[0].dataSync();
+    betas = gradWeights[1].dataSync();
 
-    if (params) {
-      let gradWeights = params[0];
-
+    // Check if random is true and read the user preference level value to add noise
+    if (random === true) {
+      let addNoise = injectNoise(user_privacy_preference_level);
       console.log(
-        "[Content Script - Socket]Diff: alphas and betas",
-        gradWeights[0].dataSync(),
-        gradWeights[1].dataSync()
+        "[Content Script - Socket]Bernoulli Sampling Result(Toss Result -> Add Noise):",
+        addNoise
       );
-
-      // Send data to the server
-      console.log(
-        "[Content Script - Socket]Sending new gradients to the server"
-      );
-
-      socket.send(
-        JSON.stringify({
-          event: "update", // 0 ->  event
-          alphas: gradWeights[0].dataSync(), // 1 ->  alphas
-          betas: gradWeights[1].dataSync(), // 2 -> betas
-          client_id: clientId,
-          model_name: "example_" + id,
-        })
-      );
+      if (addNoise) {
+        alphas = Object.assign({}, Array(alphasArray.length).fill(0));
+        betas = Object.assign({}, Array(alphasArray.length).fill(0));
+        console.log("[Content Script - Socket]alphas;betas:", alphas, betas);
+      }
     }
+    console.log(
+      "[Content Script - Socket]Diff: alphas and betas",
+      alphas,
+      betas
+    );
+    // Send data to the server
+    console.log("[Content Script - Socket]Sending new gradients to the server");
+    socket.send(
+      JSON.stringify({
+        event: "update", // 0 ->  event
+        alphas: alphas, // 1 ->  alphas
+        betas: betas, // 2 -> betas
+        client_id: clientId,
+        model_name: "example_" + id,
+      })
+    );
   }
 };
 
@@ -117,12 +182,13 @@ const initialize = (clientId) => {
   console.log("[Content Script - Socket]Onopen event registered");
   // Connect to the server & Get params from server
   socket.onopen = (message) => {
-    console.log("[Content Script - Socket]Connecton Established");
+    console.log("[Content Script - Socket]Connecton established");
     console.log("[Content Script - Socket]Received Message", message);
     socket.send(
       JSON.stringify({
         event: "connected",
         client_id: clientId,
+        model_name: "example_" + id,
       })
     );
   };
@@ -194,23 +260,17 @@ const initialize = (clientId) => {
       alphasArray,
       betasArray
     );
-    console.log("[Content Script - Socket]New Cycle", cycle);
+    console.log(
+      "===========================================================[Content Script - Socket]New Cycle",
+      cycle,
+      "========================================================================="
+    );
+    userActionPromise = new Promise((resolve) => {
+      userActionPromiseResolve = resolve;
+    });
 
     // Select a sample
     selectSample();
-
-    // Change user display
-    // setConfig(uiOptions[selectedOption]);
-
-    if (allSelectedOptions[selectedOption] == "undefined") {
-      allSelectedOptions[selectedOption] = 0;
-    }
-
-    allSelectedOptions[selectedOption] += 1;
-    console.log(
-      "[Content Script - Socket]All Selected Options",
-      allSelectedOptions
-    );
 
     // If simulation is true, simulate the user action
     if (simulation && cycle <= stopAfter) {
@@ -255,11 +315,14 @@ const initialize = (clientId) => {
   });
 };
 
-console.log("[Content Script - Socket]Socket Initialize");
+console.log(
+  "================================[Content Script - Socket]Socket initialize===================================="
+);
 socket = new WebSocket(url);
 console.log("[Content Script - Socket]Client ID:", clientId);
+
 // Initialize the listeners for socket events
-// initialize(clientId);
+initialize(clientId);
 
 // Listener for the messages sent from background script.
 browser.runtime.onMessage.addListener((data, sender) => {
@@ -268,8 +331,13 @@ browser.runtime.onMessage.addListener((data, sender) => {
     data,
     sender
   );
-  // return Promise.resolve({ status: "success" });
+  console.log(
+    "[Content Script - Socket]data - mtype:value",
+    data["_mtype"],
+    ":",
+    data["_message"]
+  );
+  user_privacy_preference_level = data["_message"];
 
-  console.log("[Content Script - Socket]Initialize");
-  console.log(socket);
+  return Promise.resolve({ status: "success" });
 });

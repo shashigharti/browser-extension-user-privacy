@@ -16,6 +16,8 @@ function getCookie(url, name) {
     })
     .then((cookie) => {
       if (cookie) {
+        console.log("[Background Script] Sending Cookies to Content Script");
+        loggingDB.sendMessageToBrowser(cookie.name, cookie.value);
         console.log(
           "[Background Script]url:cookiename:value =>",
           url,
@@ -46,14 +48,18 @@ function getActiveURL(activeInfo) {
 // Runs when tabs are activated
 browser.tabs.onActivated.addListener(function (activeInfo) {
   getActiveURL(activeInfo).then((activeURL) => {
-    readCookies(activeURL, ["udata", "mode"]);
+    readCookies(activeURL, ["udata", "mode", "user_privacy_preference_level"]);
   });
 });
 // Runs when tabs are updated
 browser.tabs.onUpdated.addListener(function (tabID, changeInfo, tab) {
-  readCookies(tab.url, ["udata", "mode"]);
+  readCookies(tab.url, ["udata", "mode", "user_privacy_preference_level"]);
+});
+browser.tabs.onCreated.addListener(function (tab) {
+  readCookies(tab.url, ["udata", "mode", "user_privacy_preference_level"]);
 });
 
+// This should be uncommented to start user data tracking
 function StartTracking(response, sender) {
   console.log("[Background Script]Sender =>", sender);
   console.log(
@@ -64,7 +70,7 @@ function StartTracking(response, sender) {
     console.log("[Background Script]Get All Cookies");
 
     // console.log("Start Tracking");
-    // main();
+    main();
   }
 }
 browser.runtime.onMessage.addListener(StartTracking);

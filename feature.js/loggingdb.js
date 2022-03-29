@@ -1,5 +1,3 @@
-import { type } from "os";
-
 let visitID = null;
 function Data() {
   this.count = 0;
@@ -12,7 +10,7 @@ function Data() {
   };
 }
 
-function sendMessageToBrowser(mtype, message) {
+export function sendMessageToBrowser(mtype, message) {
   browser.tabs.query(
     {
       currentWindow: true,
@@ -25,8 +23,7 @@ function sendMessageToBrowser(mtype, message) {
         browser.tabs
           .sendMessage(tab.id, { _mtype: mtype, _message: message })
           .then((response) => {
-            // console.log("Response from the browser", response.status);
-            // console.log(response);
+            console.log("Response from the browser", response.status);
           });
       }
     }
