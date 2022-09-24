@@ -4,9 +4,8 @@ const path = require("path");
 
 module.exports = {
   entry: {
-    feature: "./feature.js/index.js",
     content: "./content.js/index.js",
-    frontend: "./frontend.js/index.js",
+    background: "./background.js/index.js",
   },
   output: {
     path: path.resolve(__dirname, "./build/static/js"),

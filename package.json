@@ -1,11 +1,10 @@
 {
-  "name": "privacy-preserving",
+  "name": "privacy-webextension",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@craco/craco": "^5.8.0",
     "@material-ui/core": "^4.11.4",
-    "@openmined/syft.js": "github:openmined/syft.js",
     "@tensorflow/tfjs": "^3.14.0",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
@@ -16,7 +15,6 @@
     "@types/react-dom": "^16.9.8",
     "@types/styled-components": "^5.1.7",
     "jstat": "^1.9.5",
-    "openwpm-webext-instrumentation": "src/tools/webext-instrumentation",
     "react": "^17.0.1",
     "react-cookie": "^4.1.1",
     "react-dom": "^17.0.1",
@@ -28,9 +26,7 @@
     "web-vitals": "^0.2.4"
   },
   "scripts": {
-    "prebuild": "cd src/tools/webext-instrumentation && npm run build",
     "start": "react-scripts start",
-    "postinstall": "cd src/tools/webext-instrumentation && npm install",
     "postbuild": "webpack",
     "build": "INLINE_RUNTIME_CHUNK=false craco build",
     "test": "react-scripts test",

@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "OpenWPM Privacy EXtension",
+  "name": "Privacy Web Extension",
   "version": "1.0",
   "description": "OpenWPM Client Extension",
   "browser_action": {
@@ -14,7 +14,7 @@
   },
   "background": {
     "scripts": [
-      "static/js/feature.js"      
+      "static/js/background.js"      
     ]
   },
   "content_scripts": [
@@ -23,16 +23,10 @@
         "<all_urls>"
       ],
       "js": [
-        "static/js/main.js", "static/js/frontend.js"
+        "jquery.min.js", "static/js/main.js", "static/js/content.js"
       ]
     }
   ],
-  "applications": {
-    "gecko": {
-      "id": "openwpm@mozilla.org",
-      "strict_min_version": "60.0"
-    }
-  },
   "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self';",
   "permissions": [
     "<all_urls>",
