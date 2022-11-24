@@ -1,7 +1,7 @@
 import React, { ChangeEvent, useState, useEffect } from "react";
 import { Button } from "@material-ui/core";
 // import { udata } from "./config";
-import { Checkbox, Slider } from "./components";
+import { Slider } from "./components";
 import "./App.css";
 
 export const App = () => {
@@ -9,7 +9,6 @@ export const App = () => {
   const [uData, setUData] = useState<string[]>([]);
   const [maxvalue] = React.useState(100);
   const [value, setValue] = React.useState(0);
-  const [isChecked, setIsChecked] = useState(false);
 
   // Initialize Variables
   useEffect(() => {
@@ -48,19 +47,6 @@ export const App = () => {
     setValue(parseInt(e.target.value));
     updateCookie("user_privacy_preference_level", e.target.value);
   };
-
-  // const handleUDataChange = (e: ChangeEvent<HTMLInputElement>) => {
-  //   const isChecked = e.target.checked;
-  //   if (isChecked) {
-  //     setUData([...uData, e.target.value]);
-  //   } else {
-  //     let _uData = uData.filter((item) => item !== e.target.value);
-  //     setUData(_uData);
-  //   }
-  //   setIsChecked(!isChecked);
-  //   updateCookie("udata", uData.join(","));
-  // };
-
   return (
     <div className='app'>
       <h1>Data Collection</h1>
@@ -76,23 +62,6 @@ export const App = () => {
         />
         {value}
       </div>
-      {/* <div className='udata'>
-        <label>Data to Share:</label>
-        <React.Fragment>
-          {udata.map((item) => (
-            <label key={item.key}>
-              <Checkbox
-                name={item.name}
-                value={item.value}
-                checked={isChecked}
-                onChange={handleUDataChange}
-              />
-              {item.label}
-            </label>
-          ))}
-        </React.Fragment>
-        <div>{uData.join()}</div>
-      </div> */}
     </div>
   );
 };

@@ -7,8 +7,8 @@ class Simulator {
     this.action_space = Array(rates.length);
   }
   simulate(idx) {
-    console.log("[Content Script - Socket]Rates", this.rates);
-    console.log("[Content Script - Socket]Rate", this.rates[idx]);
+    console.log("[Content Script ML - Socket]Rates", this.rates);
+    console.log("[Content Script ML - Socket]Rate", this.rates[idx]);
     let choice = binomial_sample(this.rates[idx]);
     return choice;
   }
@@ -31,7 +31,7 @@ const argMax = (d) =>
  * @returns {Array}
  */
 const banditThompson = (rewards, samples, alphas, betas) => {
-  console.log("[Content Script - Socket]banditThompson");
+  console.log("[Content Script ML - Socket]banditThompson");
   const prev_alpha = alphas;
   const prev_beta = betas;
 
@@ -71,18 +71,21 @@ const actionAndUpdate = (alphasArray, betasArray, selectedOption, reward) => {
   let rewardVector = Array(alphasArray.length).fill(0);
   let sampledVector = Array(alphasArray.length).fill(0);
   console.log(
-    "[Content Script - Socket]Update Selected Option and Reward",
-    selectedOption,
+    "[Content Script ML - Socket]Update Selected Option",
+    selectedOption
+  );
+  console.log(
+    "[Content Script ML - Socket]Reward",
     reward
   );
   console.log(
-    "[Content Script - Socket]Alphas, Betas",
+    "[Content Script ML - Socket]Alphas, Betas",
     alphasArray,
     betasArray
   );
 
   console.log(
-    "[Content Script - Socket]alphasArray.length == 0 ||   betasArray.length == 0 ||   betasArray.length != alphasArray.length",
+    "[Content Script ML - Socket]alphasArray.length == 0 ||   betasArray.length == 0 ||   betasArray.length != alphasArray.length",
     alphasArray.length == 0 ||
       betasArray.length == 0 ||
       betasArray.length != alphasArray.length
@@ -97,12 +100,12 @@ const actionAndUpdate = (alphasArray, betasArray, selectedOption, reward) => {
   rewardVector[selectedOption] = reward; // reward
   sampledVector[selectedOption] = 1;
   console.log(
-    "[Content Script - Socket]Reward Vector, Sampled Vector",
+    "[Content Script ML - Socket]Reward Vector, Sampled Vector",
     rewardVector,
     sampledVector
   );
   console.log(
-    "[Content Script - Socket]tf.tensor(rewardVector)",
+    "[Content Script ML - Socket]tf.tensor(rewardVector)",
     tf.tensor(rewardVector)
   );
 
@@ -112,7 +115,7 @@ const actionAndUpdate = (alphasArray, betasArray, selectedOption, reward) => {
     tf.tensor(alphasArray),
     tf.tensor(betasArray)
   );
-  console.log("[Content Script - Socket]alphas_betas", alphas_betas);
+  console.log("[Content Script ML - Socket]alphas_betas", alphas_betas);
   let gradWeights = calcGradient(
     tf.tensor(alphasArray),
     tf.tensor(betasArray),
@@ -120,7 +123,7 @@ const actionAndUpdate = (alphasArray, betasArray, selectedOption, reward) => {
     alphas_betas[1]
   );
 
-  console.log("[Content Script - Socket]gradWeights", gradWeights);
+  console.log("[Content Script ML - Socket]gradWeights", gradWeights);
   return [gradWeights, alphas_betas];
 };
 

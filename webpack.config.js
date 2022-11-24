@@ -4,7 +4,7 @@ const path = require("path");
 
 module.exports = {
   entry: {
-    content: "./content.js/index.js",
+    rl:"./rl.js/index.js",
     background: "./background.js/index.js",
   },
   output: {

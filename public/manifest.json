@@ -23,7 +23,7 @@
         "<all_urls>"
       ],
       "js": [
-        "jquery.min.js", "static/js/main.js", "static/js/content.js"
+        "jquery.min.js", "static/js/main.js", "static/js/rl.js"
       ]
     }
   ],
