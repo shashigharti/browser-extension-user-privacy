@@ -86,14 +86,14 @@ const actionAndUpdate = (alphasArray, betasArray, selectedOption, reward) => {
 
   console.log(
     "[Content Script ML - Socket]alphasArray.length == 0 ||   betasArray.length == 0 ||   betasArray.length != alphasArray.length",
-    alphasArray.length == 0 ||
-      betasArray.length == 0 ||
-      betasArray.length != alphasArray.length
+    alphasArray.length === 0 ||
+      betasArray.length === 0 ||
+      betasArray.length !== alphasArray.length
   );
   if (
-    alphasArray.length == 0 ||
-    betasArray.length == 0 ||
-    betasArray.length != alphasArray.length
+    alphasArray.length === 0 ||
+    betasArray.length === 0 ||
+    betasArray.length !== alphasArray.length
   )
     return false;
 
@@ -134,11 +134,11 @@ const actionAndUpdate = (alphasArray, betasArray, selectedOption, reward) => {
  */
 const generateProbabilities = (dim, preference) => {
   let probabilities = [];
-  console.log("preference", preference);
+  console.log("[Content Script ML - Socket]Preference", preference);
 
   let prob_for_remaining = (1 - preference[0]) / dim;
   for (let i = 0; i < dim; i++) {
-    if (i == preference[1]) {
+    if (i === preference[1]) {
       probabilities.push(preference[0]);
     } else {
       probabilities.push(prob_for_remaining);
@@ -166,7 +166,7 @@ const generatePolicies = (no_of_clients, dim = 24, client_preferences) => {
  * @param {number} no_of_clients
  * @returns
  */
-let clientPreferences = (
+ let clientPreferences = (
   no_of_clients,
   index,
   change_prob_idxs,

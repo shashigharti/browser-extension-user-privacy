@@ -1,6 +1,4 @@
 import {
-    argMax,
-    simulate,
     actionAndUpdate,
     generatePolicies,
     clientPreferences,
@@ -10,12 +8,8 @@ import {
 } from "./data/";
 import {
     track
-} from "./useractivity"
-
-const {
-    jStat
-} = require("jstat");
-const id = 7;
+} from "./useractivity";
+const id = 6; // Example Id
 const API_ENDPOINT = "127.0.0.1:8082";
 const url = "ws://" + API_ENDPOINT + "/fl-server/" + META_DATA[id].model_name;
 
@@ -23,7 +17,6 @@ const url = "ws://" + API_ENDPOINT + "/fl-server/" + META_DATA[id].model_name;
 let alphasArray = [],
     betasArray = [],
     policy = [],
-    betaDistribution = [],
     clientId = null,
     selectedOption = 0,
     cycle = 0,
@@ -41,27 +34,39 @@ let client_preferences = clientPreferences(
     META_DATA[id].change_prob_idxs,
     META_DATA[id].change_probs
 );
-let userActionPromiseResolve = null,
-    userActionPromise = null; // stores the reference to resolve function for user action
-
+let userActionPromiseResolve = undefined,
+    userActionPromise = null;
 // User options : 24 types of options
 const dim = META_DATA[id].dim,
     stopAfter = 100,
-    policies = generatePolicies(noOfClients, dim, client_preferences),
-    elem = document.getElementsByTagName("BODY")[0];
+    policies = generatePolicies(noOfClients, dim, client_preferences);
 
-console.log("[Content Script ML]ID", id);
-console.log("[Content Script ML]API_ENDPOINT", API_ENDPOINT);
-console.log("[Content Script ML]URL", url);
-console.log("[Content Script ML]Simulate", simulation);
-console.log("[Content Script ML]stopAfter", stopAfter);
+function trackingCallback(collection, properties, callback) {    
+    console.log("[Content Script ML - Socket]Start Event Tracking");
+    if (collection === "clicks") {
+        // console.log("[Content Script Tracking - Callback]collection, properties, callback", collection, properties, callback);
+        let elem = document.getElementsByClassName(properties.element.class),
+        classes = properties.element.class.split(" ");
 
-// When the user acts....
+        if (properties.element.class === 'rejectbtn'){   
+            console.log("elem", elem);
+            new_reward = 0;            
+            handleUserAction()
+        }
+        else if(classes[0]=== 'acceptbtn'){
+            console.log("elem", elem)
+            new_reward = 1;
+            handleUserAction()
+        }
+    }
+}
+
+// Resolve after user action
 const handleUserAction = () => {
-    console.log("[Content Script ML - Socket]User Action Completed");
+    console.log("[Content Script ML]Action Resolved");
     userActionPromiseResolve(true);
 };
-
+// Inject Noise
 const injectNoise = (user_privacy_preference_level) => {
     let random_number = Math.random();
     console.log(
@@ -73,69 +78,34 @@ const injectNoise = (user_privacy_preference_level) => {
     return random_number < user_privacy_preference_level / 100 ? 1 : 0;
 };
 
-console.log("[Content Script ML - Socket]Start Event Tracking");
-function trackingCallback(collection, properties, callback) {
-    console.log("[Content Script Tracking - Callback]collection, properties, callback", collection, properties, callback);
-    if (collection === "clicks") {
-        let elem = document.getElementsByClassName(properties.element.class);
-        console.log("elem", elem);
-        console.log("class", properties.element.class)
-        if (properties.element.class === 'rejectbtn'){            
-            console.log("[Content Script Tracking - Callback]Reject button was clicked!");           
+// Get reward and update weights
+const setRewardAndUpdateWeights = async () => {
+    let alphas, betas;
+    userActionPromise = new Promise((resolve) => {
+        userActionPromiseResolve = resolve;
+      }); // Promise
+
+
+    if (cycle >= stopAfter) return;
+
+    
+    // Update the id of the root element of the website to sync the cycle of 
+    // webextension and website
+    cycle = cycle + 1;  
+    let webelem = document.getElementById("root");
+    webelem.setAttribute("data-value", cycle); // Sync with website   
+    webelem.dispatchEvent(new CustomEvent('useraction', {'detail': {'cycle': cycle}}));
+    console.log("[Content Script ML - Socket]Update cycle: {} and trigger useraction event", cycle);      
+
+    // Wait for user action
+    console.log("[Content Script ML - Socket]Waiting for user action..................................");
+    console.log("[Content Script ML]Cycle", cycle);  
+    const clicked = await userActionPromise;     
+    if (clicked === true)   {
+        if (new_reward === 1){
+            console.log("[Content Script ML - Socket]Clicked", clicked);
+            console.log("[Content Script ML - Socket]New Reward selected", new_reward);
         }
-    }
-}
-track(trackingCallback);
-
-// Initialize
-socket = new WebSocket(url);
-clientId = Math.floor(Math.random() * noOfClients);
-policy = policies[clientId];
-console.log("[Content Script ML - Socket]Selected Policy:", policy);
-
-/**
- * Choose the best option(with highest reward probability) among other various options;
- * random probability using beta distribution
- */
-const selectSample = () => {
-    // For each option find the probability using beta distribution
-    for (let opt = 0; opt < alphasArray.length; opt++) {
-        // Get a beta distribution for all alpha and beta pair
-        betaDistribution[opt] = jStat.beta.sample(
-            alphasArray[opt],
-            betasArray[opt]
-        );
-    }
-    console.log("[Content Script ML - Socket]Beta distribution", betaDistribution);
-    console.log("[Content Script ML - Socket]Policy", policy);
-
-    if (betaDistribution.length > 0) {
-        // Random selection of option from available ones
-        selectedOption = argMax(betaDistribution);
-        console.log(
-            "[Content Script ML - Socket]New option selected:",
-            selectedOption
-        );
-        rewardAndUpdateWeights();
-    }
-};
-
-/**
- * Simulate the user action and update the reward
- */
-const rewardAndUpdateWeights = async () => {
-    // If simulation is true, simulate the user action
-    if (cycle <= stopAfter) {
-        let alphas, betas;
-
-        // Wait for user action
-        const clicked = await userActionPromise;
-        console.log("[Content Script ML - Socket]Clicked", clicked);
-
-        //     // If they clicked, set the reward value for this option to be a 1, otherwise it's a 0
-        //     new_reward = clicked ? 1 : 0;
-        //     console.log("[Content Script ML - Socket]New Reward selected", new_reward);
-        // }
 
         // Calculate new gradients
         let params = actionAndUpdate(
@@ -167,7 +137,7 @@ const rewardAndUpdateWeights = async () => {
             betas
         );
         // Send data to the server
-        console.log("[Content Script ML - Socket]Sending new gradients to the server");
+        console.log("[Content Script ML - Socket]Sending new gradients to the server");          
         socket.send(
             JSON.stringify({
                 event: "update", // 0 ->  event
@@ -177,18 +147,16 @@ const rewardAndUpdateWeights = async () => {
                 model_name: "example_" + id,
             })
         );
-    }
+    }    
 };
 
-/**
- * Initialize and start the training process
- */
+// Initializes socket events
 const initialize = (clientId) => {
     console.log("[Content Script ML - Socket]Onopen event registered");
     // Connect to the server & Get params from server
     socket.onopen = (message) => {
         console.log("[Content Script ML - Socket]Connecton established");
-        console.log("[Content Script ML - Socket]Received Message", message);
+        console.log("[Content Script ML - Socket]Message Received", message);
         socket.send(
             JSON.stringify({
                 event: "connected",
@@ -198,17 +166,23 @@ const initialize = (clientId) => {
         );
     };
 
-    // Add socket listeners
-    // Handle message received from server
+    
     console.log("[Content Script ML - Socket]Onmessage event registered");
+    // Events to receive message from server
     socket.onmessage = (event) => {
-        if (cycle > stopAfter) return;
-
         const message_from_server = JSON.parse(event.data);
+        // console.log("[Content Script ML - Socket]Message Received", message_from_server);        
+
+        if (cycle > stopAfter) return;
+        
         let dim_from_server = null;
         console.log(
             "[Content Script ML - Socket]Message Received",
             message_from_server
+        );
+        console.log(
+            "[Content Script ML - Socket]Type",
+            message_from_server["type"] 
         );
         // Sets params with the value received from the server
         if (message_from_server["type"] === "init-params") {
@@ -225,81 +199,39 @@ const initialize = (clientId) => {
                 alphasArray,
                 betasArray
             );
-            elem.dispatchEvent(new CustomEvent("initevent"));
+            setRewardAndUpdateWeights();
         } else if (message_from_server["type"] === "new_weights") {
             alphasArray = message_from_server.params["al"];
             betasArray = message_from_server.params["bt"];
-            cycle = cycle + 1;            
-            // Raise an event -newweightsreceived
-            elem.dispatchEvent(new CustomEvent("newweightsreceived"));
-        }
+            userActionPromiseResolve = undefined;
+            let webelem = document.getElementById("root");
+            webelem.dispatchEvent(new CustomEvent('newcycle'));
+            console.log("[Content Script ML - Socket]Trigger newcycle event", cycle);    
+            setRewardAndUpdateWeights();
+        }           
     };
-
-    // Event listener for initevent
-    elem.addEventListener("initevent", function(event) {
-        console.log(
-            "[Content Script ML - Socket]INIT - Received Alphas Betas",
-            alphasArray,
-            betasArray
-        );
-
-        // Select a sample
-        selectSample();
-    });
-
-    // Event listener for newweightsreceived
-    elem.addEventListener("newweightsreceived", function(event) {        
-        if (cycle > stopAfter) return;
-        console.log(
-            "[Content Script ML - Socket]New Weights Received",
-            alphasArray,
-            betasArray
-        );
-        console.log(
-            "[Content Script ML - Socket]New Cycle", cycle,
-        );    
-        console.log("[Content Script ML - Socket]New reward selected", new_reward);
-        // Select a sample
-        selectSample();
-        let params = actionAndUpdate(
-            alphasArray,
-            betasArray,
-            selectedOption,
-            new_reward
-        );
-        console.log("[Content Script ML - Socket]Params", params);
-        if (params) {
-            gradWeights = params[0];
-            console.log(
-                "[Content Script ML - Socket]Diff: alphas and betas",
-                gradWeights[0].dataSync(),
-                gradWeights[1].dataSync()
-            );
-            // Send data to the server
-            console.log(
-                "[Content Script ML - Socket]Sending new gradients to the server"
-            );
-            socket.send(
-                JSON.stringify({
-                    event: "update", // 0 ->  event
-                    alphas: gradWeights[0].dataSync(), // 1 ->  alphas
-                    betas: gradWeights[1].dataSync(), // 2 -> betas
-                    client_id: clientId,
-                    model_name: "example_" + id,
-                })
-            );
-        }
-    });
 };
 
-console.log(
-    "================================[Content Script ML - Socket]Socket initialize===================================="
-);
+// Initialization
 socket = new WebSocket(url);
-console.log("[Content Script ML - Socket]Client ID:", clientId);
+clientId = 0;//Math.floor(Math.random() * noOfClients);
+policy = policies[clientId];
+
+// Display Params
+console.log("[Content Script ML]Example ID", id);
+console.log("[Content Script ML]Client ID:", clientId);
+console.log("[Content Script ML]noOfClients", noOfClients);
+console.log("[Content Script ML]API_ENDPOINT", API_ENDPOINT);
+console.log("[Content Script ML]URL", url);
+console.log("[Content Script ML]Simulate", simulation);
+console.log("[Content Script ML]Cycle", cycle);
+console.log("[Content Script ML]stopAfter", stopAfter);
+console.log("[Content Script ML - Socket]Selected Policy:", policy);
+
 
 // Initialize the listeners for socket events
 initialize(clientId);
+track(trackingCallback);
 
 // Listener for the messages sent from background script.
 browser.runtime.onMessage.addListener((data, sender) => {

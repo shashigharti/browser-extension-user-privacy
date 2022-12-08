@@ -113,26 +113,21 @@ export function track(callback) {
         });
         $.each($("button"), function(index, element) {
             $(element).on('click', function(event) {
-                console.log("button click")
                 var properties = toClickProperties(event, element, moreProperties);
                 CommonWeb.Callback(options.clicksEventName, properties);
-                event.preventDefault();
             });
-
         });
-
     }
 
     // track things that are not links; i.e. don't need any special tricks to
     // prevent page unloads
     CommonWeb.trackClicksPassive = function(elements, moreProperties) {
-        // $.each(elements, function(index, element) {
-        //     $(element).on('click', function(event) {
-        //         var properties = toClickProperties(event, element, moreProperties);
-        //         CommonWeb.Callback(options.clicksEventName, properties);
-        //     });
-        // });
-
+        $.each(elements, function(index, element) {
+            $(element).on('click', function(event) {
+                var properties = toClickProperties(event, element, moreProperties);
+                CommonWeb.Callback(options.clicksEventName, properties);
+            });
+        });
     }
 
     // track form submissions

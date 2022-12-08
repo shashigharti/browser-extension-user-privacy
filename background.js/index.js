@@ -52,14 +52,14 @@
 // });
 
 // This should be uncommented to start user data tracking
-function StartTracking(response, sender) {
-  console.log("[Background Script]Sender =>", sender);
-  console.log(
-    "[Background Script]Message Received from Content Script =>",
-    response.message
-  );
-  if (response.message === "start") {
-    console.log("[Background Script]Message", response.message);
-  }
-}
-browser.runtime.onMessage.addListener(StartTracking);
+// function StartTracking(response, sender) {
+//   console.log("[Background Script]Sender =>", sender);
+//   console.log(
+//     "[Background Script]Message Received from Content Script =>",
+//     response.message
+//   );
+//   if (response.message === "start") {
+//     console.log("[Background Script]Message", response.message);
+//   }
+// }
+// browser.runtime.onMessage.addListener(StartTracking);
