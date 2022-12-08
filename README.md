@@ -1,12 +1,6 @@
 ## Reference
 
 
-## Pull submodule web-extension(mozilla)
-```
-git submodule init 
-git submodule update
-```
-
 ## 1. How to build this extension:
 
 ```
