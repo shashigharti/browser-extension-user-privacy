@@ -26,7 +26,8 @@ let alphasArray = [],
     random = true,
     noOfClients = META_DATA[id].no_of_clients,
     probIdx = 0, // It increases by 1 unit if the policy change is set to true
-    gradWeights, new_reward;
+    gradWeights, new_reward, interval,
+    endOfCycle = false;
 
 let client_preferences = clientPreferences(
     noOfClients,
@@ -42,22 +43,13 @@ const dim = META_DATA[id].dim,
     policies = generatePolicies(noOfClients, dim, client_preferences);
 
 function trackingCallback(collection, properties, callback) {    
-    console.log("[Content Script ML - Socket]Start Event Tracking");
     if (collection === "clicks") {
-        // console.log("[Content Script Tracking - Callback]collection, properties, callback", collection, properties, callback);
-        let elem = document.getElementsByClassName(properties.element.class),
-        classes = properties.element.class.split(" ");
+            if (endOfCycle) return;
 
-        if (properties.element.class === 'rejectbtn'){   
-            console.log("elem", elem);
-            new_reward = 0;            
-            handleUserAction()
-        }
-        else if(classes[0]=== 'acceptbtn'){
-            console.log("elem", elem)
-            new_reward = 1;
-            handleUserAction()
-        }
+            let elem = document.getElementById("root");
+            new_reward = parseInt(elem.getAttribute("data-reward"));
+            endOfCycle = true;
+            handleUserAction();
     }
 }
 
@@ -80,32 +72,40 @@ const injectNoise = (user_privacy_preference_level) => {
 
 // Get reward and update weights
 const setRewardAndUpdateWeights = async () => {
-    let alphas, betas;
+    let alphas, betas, clicked = false;
     userActionPromise = new Promise((resolve) => {
         userActionPromiseResolve = resolve;
-      }); // Promise
+    }); 
+    if (cycle >= stopAfter) {
+        clearInterval(interval); 
+        return;
+    }
 
-
-    if (cycle >= stopAfter) return;
-
-    
-    // Update the id of the root element of the website to sync the cycle of 
-    // webextension and website
-    cycle = cycle + 1;  
+    // Raise the useraction event to trigger user action in website
     let webelem = document.getElementById("root");
-    webelem.setAttribute("data-value", cycle); // Sync with website   
-    webelem.dispatchEvent(new CustomEvent('useraction', {'detail': {'cycle': cycle}}));
-    console.log("[Content Script ML - Socket]Update cycle: {} and trigger useraction event", cycle);      
+    let isWaiting = parseInt(webelem.getAttribute("data-waiting")); // Signals website is waiting for 'useraction' event.    
+    console.log("[Content Script ML - Socket]Website is waiting for event", isWaiting, isWaiting === 1); 
+    
 
-    // Wait for user action
+    if (!endOfCycle && isWaiting === 0) return
+
+    // Read selected option from the website
+    selectedOption = webelem.getAttribute('data-option');
+    console.log("[Content Script ML - Socket]Selected Option in Website", selectedOption);
+    webelem.dispatchEvent(new CustomEvent('useraction'));
+    console.log("[Content Script ML - Socket]Trigger 'useraction' Event", cycle); 
+
+
     console.log("[Content Script ML - Socket]Waiting for user action..................................");
-    console.log("[Content Script ML]Cycle", cycle);  
-    const clicked = await userActionPromise;     
+    clicked = await userActionPromise;    
+    
     if (clicked === true)   {
         if (new_reward === 1){
             console.log("[Content Script ML - Socket]Clicked", clicked);
-            console.log("[Content Script ML - Socket]New Reward selected", new_reward);
+        }else{
+            console.log("[Content Script ML - Socket]Rejected");            
         }
+        console.log("[Content Script ML - Socket]New Reward selected", new_reward);
 
         // Calculate new gradients
         let params = actionAndUpdate(
@@ -137,7 +137,8 @@ const setRewardAndUpdateWeights = async () => {
             betas
         );
         // Send data to the server
-        console.log("[Content Script ML - Socket]Sending new gradients to the server");          
+        console.log("[Content Script ML - Socket]Sending New Gradients to the Server");    
+        endOfCycle = false;      
         socket.send(
             JSON.stringify({
                 event: "update", // 0 ->  event
@@ -189,27 +190,33 @@ const initialize = (clientId) => {
             dim_from_server = message_from_server.params["dim"];
             // Set the values
             if (dim_from_server !== dim) {
-                console.log("[Content Script ML - Socket]Dimension does not match. ");
+                console.log("[Content Script ML - Socket]Dimension Doesnot Match. ");
                 return;
             }
             alphasArray = message_from_server.params["al"];
             betasArray = message_from_server.params["bt"];
             console.log(
-                "[Content Script ML - Socket]Params received alphas and betas",
+                "[Content Script ML - Socket]Params Received Alphas and Betas",
                 alphasArray,
                 betasArray
             );
-            setRewardAndUpdateWeights();
+            // setRewardAndUpdateWeights();
         } else if (message_from_server["type"] === "new_weights") {
             alphasArray = message_from_server.params["al"];
             betasArray = message_from_server.params["bt"];
             userActionPromiseResolve = undefined;
-            let webelem = document.getElementById("root");
-            webelem.dispatchEvent(new CustomEvent('newcycle'));
-            console.log("[Content Script ML - Socket]Trigger newcycle event", cycle);    
-            setRewardAndUpdateWeights();
+            // Sync with website: Update the id of the root element of the website to 
+            // trigger start of new cycle.
+            cycle = cycle + 1;
+            let webelem = document.getElementById("root");                 
+            webelem.setAttribute("data-cycle", cycle); // Update cycle to website          
+            webelem.dispatchEvent(new CustomEvent('newcycle', {'detail': {'cycle': cycle}}));
+            console.log("[Content Script ML - Socket]Trigger Newcycle Event, Cycle =>", cycle);  
+            // setRewardAndUpdateWeights();
         }           
     };
+    // Set timer to run reward and update
+    interval = setInterval(setRewardAndUpdateWeights, 1000);    
 };
 
 // Initialization

@@ -72,8 +72,8 @@ const META_DATA = {
     has_nested_route: "false",
     model_name: "example_6",
     change_policy: false,
-    change_prob_idxs: { 0: [0], 1: [1] }, // indexes for probability value change
-    change_probs: { 0: [0.8], 1: [0.8] }, // probability value for different indexes given by change_prob_idxs
+    change_prob_idxs: { 0: [0] }, // indexes for probability value change
+    change_probs: { 0: [0.8]}, // probability value for different indexes given by change_prob_idxs
   },
   7: {
     base_url: "web-client",
