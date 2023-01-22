@@ -19,7 +19,7 @@ class Simulator {
  */
 const argMax = (d) =>
   Object.entries(d).filter(
-    (el) => el[1] == Math.max(...Object.values(d))
+    (el) => el[1] === Math.max(...Object.values(d))
   )[0][0];
 
 /**
