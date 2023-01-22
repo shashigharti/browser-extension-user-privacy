@@ -5,7 +5,7 @@ const path = require("path");
 module.exports = {
   entry: {
     rl:"./rl.js/index.js",
-    background: "./background.js/index.js",
+    // background: "./background.js/index.js",
   },
   output: {
     path: path.resolve(__dirname, "./build/static/js"),

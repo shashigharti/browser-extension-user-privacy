@@ -19,10 +19,15 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react",
-    "types": ["firefox-webext-browser"]
+    "types": [
+      "firefox-webext-browser"
+    ]
   },
   "include": [
-    "src"
-, "common.js"  ],
-  "exclude": ["src/tools"]
+    "src",
+    "common.js"
+  ],
+  "exclude": [
+    "src/tools"
+  ]
 }

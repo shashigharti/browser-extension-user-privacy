@@ -13,9 +13,7 @@
     "128": "logo192.png"
   },
   "background": {
-    "scripts": [
-      "static/js/background.js"      
-    ]
+    "scripts": []
   },
   "content_scripts": [
     {
