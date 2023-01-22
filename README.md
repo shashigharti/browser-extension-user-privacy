@@ -12,6 +12,7 @@ $ npm run build
 - Load Temporary Add-on
 
 Select `/build` folder
+![add-to-firefox](https://user-images.githubusercontent.com/5582809/213909517-64ced3ea-76dd-4e2d-82e8-ada579dab4d7.png)
 
 ## References
 
