@@ -29,7 +29,9 @@
     "postbuild": "webpack",
     "build": "INLINE_RUNTIME_CHUNK=false craco build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "format": "prettier --write '{src,rl.js}/**/*.{js,tsx}*'",
+    "lint": "prettier --check '{src,rl.js}/**/*.{js,tsx}*'"
   },
   "eslintConfig": {
     "extends": [
@@ -54,6 +56,12 @@
     "@types/firefox-webext-browser": "^82.0.1",
     "@types/react-router-dom": "^5.1.6",
     "@types/uuid": "^8.3.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-react": "^7.26.1",
+    "eslint-plugin-standard": "^4.1.0",
+    "prettier": "^2.8.3",
     "typescript": "^3.9.10",
     "webpack-cli": "^4.7.2"
   }

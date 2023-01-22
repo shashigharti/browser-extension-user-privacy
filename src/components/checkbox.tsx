@@ -1,4 +1,4 @@
-import React, { ChangeEventHandler } from "react";
+import React, { ChangeEventHandler } from 'react'
 
 const Checkbox = ({
   name,
@@ -6,18 +6,18 @@ const Checkbox = ({
   checked,
   onChange,
 }: {
-  name: string;
-  value: string;
-  checked: boolean;
-  onChange: ChangeEventHandler<HTMLInputElement>;
+  name: string
+  value: string
+  checked: boolean
+  onChange: ChangeEventHandler<HTMLInputElement>
 }) => (
   <input
-    type='checkbox'
+    type="checkbox"
     name={name}
     value={value}
     onChange={onChange}
     checked={checked}
   />
-);
+)
 
-export default Checkbox;
+export default Checkbox
