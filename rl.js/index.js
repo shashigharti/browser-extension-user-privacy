@@ -109,6 +109,7 @@ const setRewardAndUpdateWeights = async () => {
 
     // Calculate new gradients
     let params = actionAndUpdate(alphasArray, betasArray, selectedOption, new_reward)
+    console.log('[Content Script ML - Socket]Grad Weights', params)
     gradWeights = params[0]
     alphas = gradWeights[0].dataSync()
     betas = gradWeights[1].dataSync()
