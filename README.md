@@ -11,7 +11,7 @@ $ npm run build
 - Type "about:debugging" in url
 - Load Temporary Add-on
 
-Select `/build` folder
+Select `/build/manifest.json`
 ![add-to-firefox](https://user-images.githubusercontent.com/5582809/213909517-64ced3ea-76dd-4e2d-82e8-ada579dab4d7.png)
 
 ## References
